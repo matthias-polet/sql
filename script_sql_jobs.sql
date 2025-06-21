@@ -3,6 +3,7 @@
 USE msdb
 GO
 
+-- Create FUNCTION to convert the SQL server to a placeholder and vise versa.
 CREATE OR ALTER FUNCTION dbo.udf_replace_sql_servername_to_placeholder (@COMMAND NVARCHAR(max))
 RETURNS NVARCHAR(max)
 WITH EXECUTE AS CALLER
@@ -21,7 +22,7 @@ BEGIN
 END;
 GO
 
-
+-- Create PROCEDURE that creates another PROCEDURE to create or alter an SQL Job.
 CREATE OR ALTER PROCEDURE dbo.usp_script_sql_job_procedure(@job_name sysname)
 AS
 BEGIN
@@ -90,18 +91,21 @@ insert into #sql_statement (sql_statement) values ( 'END' )
 
 declare @sql NVARCHAR(max) = ''
 select @sql = @sql + CHAR(13) + CHAR(10) + sql_statement from #sql_statement order by row_id asc
+-- Create the actual PROCEDURE.
 EXEC sp_executesql @sql
 END
 GO
 
--- USAGE:
+-- Usage:
 exec dbo.usp_script_sql_job_procedure 'MY_JOB_NAME'
+-- And now run the created PROCEDURE to create or alter the SQL job.
+-- exec dbo.usp_create_or_alter_sql_job_MY_JOB_NAME
 GO
 
 -- Cleanup objects
-drop function if exists dbo.udf_replace_sql_servername_to_placeholder 
-GO
-drop function if exists dbo.udf_replace_placeholder_to_sql_servername
-go
-drop procedure if exists dbo.usp_script_sql_job_procedure;
-go
+-- drop function if exists dbo.udf_replace_sql_servername_to_placeholder 
+-- GO
+-- drop function if exists dbo.udf_replace_placeholder_to_sql_servername
+-- go
+-- drop procedure if exists dbo.usp_script_sql_job_procedure;
+-- go
