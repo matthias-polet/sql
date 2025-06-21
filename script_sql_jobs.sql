@@ -1,3 +1,5 @@
+/*** To script an existing SQL Job. Replacing the current @@ServerName with a placeholder. ***/
+
 USE msdb
 GO
 
