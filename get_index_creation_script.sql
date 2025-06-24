@@ -1,37 +1,36 @@
-CREATE or alter FUNCTION dbo.get_index_creation_script
+CREATE OR ALTER FUNCTION dbo.get_index_creation_script
 (
-    @table_name sysname,
-    @index_name sysname
+    @table_name SYSNAME,
+    @index_name SYSNAME
 )
 RETURNS NVARCHAR(MAX)
 AS
 BEGIN
-    declare @sql nvarchar(max)
+    DECLARE @sql NVARCHAR(MAX)
 
-
-    select  @sql = 'CREATE' + case when ix.is_unique = 1 then ' UNIQUE ' else ' ' end + ix.type_desc + ' INDEX ' + ix.name + ' ON ' + t.name + ' ('
+    -- Select the SQL command for creating the specified index on the specified table.
+    SELECT @sql = 'CREATE' + CASE WHEN ix.is_unique = 1 THEN ' UNIQUE ' ELSE '' END + ix.type_desc + ' INDEX ' + ix.name + ' ON ' + t.name + ' ('
     FROM sys.indexes ix
-    inner join sys.tables t on t.object_id = ix.object_id
-    where ix.name = @index_name
-      and t.name = @table_name
+        INNER JOIN sys.tables t ON t.object_id = ix.object_id
+    WHERE ix.name = @index_name
+        AND t.name = @table_name
 
-
-
-    select @sql = @sql + col.name + ', '
+    -- Add columns to the SQL command according to their order in the index.
+    SELECT @sql = @sql + col.name + ', '
     FROM sys.indexes ix
-    inner join sys.tables t on t.object_id = ix.object_id
-    INNER JOIN sys.index_columns ic on ic.index_id = ix.index_id and ic.object_id = ix.object_id
-    inner join sys.columns col on col.column_id = ic.column_id and col.object_id = ix.object_id
-    where ix.name = @index_name
-      and t.name = @table_name
-    order by ic.key_ordinal -- (!)
+        INNER JOIN sys.tables t ON t.object_id = ix.object_id
+        INNER JOIN sys.index_columns ic ON ic.index_id = ix.index_id AND ic.object_id = ix.object_id
+        INNER JOIN sys.columns col ON col.column_id = ic.column_id AND col.object_id = ix.object_id
+    WHERE ix.name = @index_name
+        AND t.name = @table_name
+    ORDER BY ic.key_ordinal -- (!) Sort the columns according to their order in the index.
 
-    set @sql = left(@sql, len(@sql) - 1) + ')' 
+    -- Remove the final comma from the SQL command and replace it by a closing bracket.
+    SET @sql = LEFT(@sql, LEN(@sql) - 1) + ')'
 
-    return @sql
-
+    RETURN @sql
 END;
 GO
 
 -- Usage
-select dbo.get_index_creation_script('MyTable', 'IXC_MyTable');
+SELECT dbo.get_index_creation_script('MyTable', 'IXC_MyTable');
