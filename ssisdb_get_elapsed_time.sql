@@ -1,7 +1,7 @@
 use SSISDB
 go
 
--- Get the duration (eleapsed time) of leaf executions, A leaf execution is an execution without any children.
+-- Get the duration (elapsed time) of leaf executions, A leaf execution is an execution without any children.
 -- This can be used as input to report the performance of an SSIS package.
 
 drop table if exists #run_time;
